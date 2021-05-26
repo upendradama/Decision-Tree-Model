@@ -1,0 +1,116 @@
+# Decision Tree and Random Forest
+
+### Problem Statement:- 
+
+    - A cloth manufacturing company is interested to know about the segment or attributes contributing to high sale.
+
+### Data Understanding
+
+```{r}
+library(readr)
+cd <- read_csv("/Users/thanush/Desktop/Digi 360/Module 19/Company_Data.csv")
+head(cd)
+```
+
+```{r}
+# Renaming the columns
+colnames(cd) <- c("sales","comp_price","inc","adv","pop", "price", "sloc", "age","edu","urban","us")
+head(cd)
+```
+
+```{r}
+# converting outpout variable to categorical
+cd$sales <- ifelse(cd$sales > 8,"Yes","No")
+head(cd)
+```
+
+
+```{r}
+#converting features into factor
+cd$sloc <- as.factor(cd$sloc)
+cd$urban <- as.factor(cd$urban)
+cd$us <- as.factor(cd$us)
+cd$sales <- as.factor(cd$sales)
+```
+
+```{r}
+str(cd)
+```
+
+
+### Splitting the dataset into test and train
+
+```{r}
+sales_high <- cd[cd$sales == "Yes",] 
+sales_low <- cd[cd$sales == "No",]
+
+```
+
+
+```{r}
+train <- rbind(sales_high[1:131,], sales_low[1:189,])
+test <- rbind(sales_high[132:164,], sales_low[190:236,])
+```
+
+### Building the model
+
+```{r}
+# Loading the rpart library for building the model
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+# Let's build the model on train data
+model_tree <- rpart(sales~., data=train, method = 'class', cp=.02)
+```
+
+### Plotting a Tree
+
+```{r}
+# Plotting the Tree Graph
+rpart.plot(model_tree,box.palette="RdBu", shadow.col="gray", nn=TRUE)
+```
+
+### Predictions on Train Data
+
+```{r}
+# Accuracy of training data
+train_pred = predict(model_tree,train,type="class")
+confMat <- table(train$sales,train_pred)
+```
+
+### Train Data Accuracy
+
+```{r}
+accuracy <- sum(diag(confMat))/sum(confMat)
+accuracy
+```
+
+### Predictions on test data
+
+```{r}
+test_pred = predict(model_tree,test,type="class")
+confMat <- table(test$sales,test_pred)
+```
+
+### Test data accuracy
+
+```{r}
+accuracy <- sum(diag(confMat))/sum(confMat)
+accuracy
+```
+
+### Cross Table
+
+```{r}
+library(gmodels)
+CrossTable(test$sales, test_pred)
+```
+
+### Conclusion
+
+    - There is not much deviation in the accuracy between train and test data
+    - Accuracy of test data is 73%
+    
+We conclude that our model has classified the sales with accuracy of 73%. 

@@ -1,0 +1,127 @@
+# Decision Tree and Random Forest
+
+### Problem Statement:- 
+
+    - Use Decision Trees to prepare a model on fraud data, treating those who have taxable_income <= 30000 as "Risky" and others are "Good"
+
+### Data Understanding
+
+```{r}
+library(readr)
+fc <- read_csv("/Users/thanush/Desktop/Digi 360/Module 19/Fraud_check.csv")
+head(fc)
+```
+
+```{r}
+# Renaming the columns
+colnames(fc) <- c("ug","mstatus","inc","pop", "exp", "urban")
+head(fc)
+```
+
+```{r}
+# converting outpout variable to categorical
+fc$inc <- ifelse(fc$inc <= 30000,"Risky","Good")
+head(fc)
+```
+
+```{r}
+table(fc$inc)
+```
+
+
+```{r}
+#converting features into factor
+fc$inc <- as.factor(fc$inc)
+fc$urban <- as.factor(fc$urban)
+fc$ug <- as.factor(fc$ug)
+fc$mstatus <- as.factor(fc$mstatus)
+```
+
+```{r}
+str(fc)
+```
+
+
+### Splitting the dataset into test and train
+
+```{r}
+inc_risky <- fc[fc$inc == "Risky",] 
+inc_good <- fc[fc$inc == "Good",]
+```
+
+Here the data is unbalanced so we will use `Undersampling` technique to balance the data.
+
+### Applying Undersampling technique
+
+```{r}
+# Taking only the same number of data points from majority class.
+train <- rbind(inc_risky[1:87,], inc_good[1:87,])
+test <- rbind(inc_risky[88:124,], inc_good[88:124,])
+```
+
+### Building the model
+
+```{r}
+# Loading the rpart library for building the model
+library(rpart)
+library(rpart.plot)
+```
+
+```{r}
+# Let's build the model on train data
+model_tree <- rpart(inc~., data=train, method = 'class', cp=.02)
+```
+
+### Plotting a Tree
+
+```{r}
+# Plotting the Tree Graph
+rpart.plot(model_tree,box.palette="RdBu", shadow.col="gray", nn=TRUE)
+```
+
+### Predictions on Train Data
+
+```{r}
+# Accuracy of training data
+train_pred = predict(model_tree,train,type="class")
+# Confusion Matrix
+confMat <- table(train$inc,train_pred)
+confMat
+```
+
+### Train Data Accuracy
+
+```{r}
+accuracy <- sum(diag(confMat))/sum(confMat)
+accuracy
+```
+
+### Predictions on test data
+
+```{r}
+test_pred = predict(model_tree,test,type="class")
+#Confusion Matrix
+confMat <- table(test$inc,test_pred)
+confMat
+```
+
+### Test data accuracy
+
+```{r}
+accuracy <- sum(diag(confMat))/sum(confMat)
+accuracy
+```
+
+### Cross Table
+
+```{r}
+library(gmodels)
+CrossTable(test$inc, test_pred)
+```
+
+### Conclusion
+
+    - There is significant deviation in the accuracy between train and test data
+    - Accuracy of test data is 57%
+    
+We conclude that our model has classified the `risk` with accuracy of 57%. 

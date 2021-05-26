@@ -1,0 +1,121 @@
+# Decision Tree and Random Forest
+
+### Problem Statement:- 
+
+    - Divide the data (Diabetes) into training and test datasets and create a Random Forest Model to classify 'Class Variable'.
+
+### Data Understanding
+
+```{r}
+library(readr)
+db <- read_csv("/Users/thanush/Desktop/Digi 360/Module 19/Diabetes.csv")
+head(db)
+```
+
+```{r}
+# Renaming the columns
+colnames(db) <- c("np","plasma","dbp","tsf_thick", "serum", "BMI", "pedigree", "age", "class")
+head(db)
+```
+
+```{r}
+table(db$class)
+```
+
+
+```{r}
+#converting features into factor
+db$class <- as.factor(db$class)
+```
+
+```{r}
+str(db)
+```
+
+```{r}
+# Checking for missing values
+sapply(db, function(x) sum(is.na(x)))
+```
+
+
+### Splitting the dataset into test and train
+
+```{r}
+# Taking only the same number of data points from majority class.
+library(caret)
+set.seed(1000)
+index <- createDataPartition(y = db$class, p = 0.7, list = FALSE)
+train <- db[index, ]
+test <- db[-index, ]
+```
+
+```{r}
+head(train)
+```
+
+### Building the model
+
+```{r}
+# Loading the randomForest library for building the model
+library(randomForest)
+```
+
+```{r}
+# Let's build the model on train data
+model_tree <- randomForest(class~., data=train, mtry = 8, ntree=500, importance=TRUE)
+```
+
+### Plotting a Tree
+
+```{r}
+# Plotting the Tree Graph
+plot(model_tree)
+```
+
+### Predictions on Train Data
+
+```{r}
+train_pred <- predict(model_tree, newdata = train)
+```
+
+### Confusion Matrix
+
+```{r}
+confMat = table(train$class, train_pred)
+confMat
+```
+
+### Train Data Accuracy
+
+```{r}
+train_acc <- sum(diag(confMat))/sum(confMat)
+train_acc
+```
+
+
+### Predictions on Test data
+
+```{r}
+test_pred <- predict(model_tree, newdata = test)
+```
+
+### Confusion Matrix 
+
+```{r}
+confMat = table(test$class, test_pred)
+confMat
+```
+
+### Test data accuracy
+
+```{r}
+test_acc <- sum(diag(confMat))/sum(confMat)
+test_acc
+```
+
+### Conclusion
+
+    - There is significant deviation in the accuracy between train and test data
+    - Accuracy of test data is 77%
+    
+We conclude that our model has done `diabetes` classification with accuracy of 77%. 
